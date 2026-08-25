@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub 相冊管理</title>
+  <style>
+    body { font-family: sans-serif; padding: 15px; max-width: 800px; margin: 0 auto; background: #f9f9f9; }
+    .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 15px; }
+    .grid img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }
+    label, select, input, button { display: block; width: 100%; margin-top: 8px; padding: 8px; box-sizing: border-box; }
+    button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <h2>GitHub 圖庫管理員</h2>
+
+  <div class="card">
+    <h3>1. 設定 GitHub 設定</h3>
+    <input type="text" id="username" placeholder="GitHub 帳號 (例如: username)">
+    <input type="text" id="repo" placeholder="儲存庫名稱 (例如: my-image-repo)">
+    <input type="password" id="token" placeholder="GitHub Personal Access Token (repo 權限)">
+    <button onclick="saveConfig()">儲存設定</button>
+  </div>
+
+  <div class="card">
+    <h3>2. 上傳圖片</h3>
+    <label>選擇分類資料夾：</label>
+    <select id="category" onchange="loadImages()">
+      <option value="default">預設 (default)</option>
+      <option value="food">美食 (food)</option>
+      <option value="travel">旅遊 (travel)</option>
+      <option value="work">工作 (work)</option>
+    </select>
+    
+    <input type="file" id="fileInput" accept="image/*">
+    <button onclick="uploadImage()">上傳並自動刷新</button>
+  </div>
+
+  <div class="card">
+    <h3>3. 圖片列表</h3>
+    <button onclick="loadImages()">手動刷新列表</button>
+    <div id="gallery" class="grid"></div>
+  </div>
+
+  <script>
+    // 儲存與讀取設定
+    function saveConfig() {
+      localStorage.setItem('gh_user', document.getElementById('username').value);
+      localStorage.setItem('gh_repo', document.getElementById('repo').value);
+      localStorage.setItem('gh_token', document.getElementById('token').value);
+      alert('設定已儲存！');
+      loadImages();
+    }
+
+    function getConfig() {
+      return {
+        user: localStorage.getItem('gh_user'),
+        repo: localStorage.getItem('gh_repo'),
+        token: localStorage.getItem('gh_token')
+      };
+    }
+
+    // 自動填入已有設定
+    window.onload = () => {
+      const cfg = getConfig();
+      if(cfg.user) document.getElementById('username').value = cfg.user;
+      if(cfg.repo) document.getElementById('repo').value = cfg.repo;
+      if(cfg.token) document.getElementById('token').value = cfg.token;
+      if(cfg.user && cfg.repo) loadImages();
+    };
+
+    // 上傳圖片至 GitHub API
+    async function uploadImage() {
+      const cfg = getConfig();
+      const fileInput = document.getElementById('fileInput');
+      const category = document.getElementById('category').value;
+
+      if (!cfg.token || !fileInput.files[0]) {
+        alert('請確認已填寫 Token 並選擇圖片！');
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async function() {
+        const base64Content = reader.result.split(',')[1];
+        const fileName = `${Date.now()}_${file.name}`;
+        const path = `images/${category}/${fileName}`;
+        const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${path}`;
+
+        try {
+          const res = await fetch(url, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `token ${cfg.token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              message: `Upload ${fileName} to ${category}`,
+              content: base64Content
+            })
+          });
+
+          if (res.ok) {
+            alert('上傳成功！');
+            fileInput.value = ''; // 清空檔案選擇
+            loadImages(); // 上傳後自動刷新圖片
+          } else {
+            const err = await res.json();
+            alert('上傳失敗: ' + err.message);
+          }
+        } catch (e) {
+          alert('請求失敗: ' + e.message);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    // 載入指定分類下的圖片
+    async function loadImages() {
+      const cfg = getConfig();
+      const category = document.getElementById('category').value;
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '載入中...';
+
+      if (!cfg.user || !cfg.repo) return;
+
+      const path = `images/${category}`;
+      const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${path}`;
+
+      try {
+        const res = await fetch(url, {
+          headers: cfg.token ? { 'Authorization': `token ${cfg.token}` } : {}
+        });
+
+        if (res.status === 404) {
+          gallery.innerHTML = '此分類尚無圖片。';
+          return;
+        }
+
+        const files = await res.json();
+        gallery.innerHTML = '';
+
+        files.forEach(file => {
+          if (file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+            const img = document.createElement('img');
+            // 使用 GitHub raw 連結或 jsDelivr CDN 進行加速展示
+            img.src = file.download_url;
+            gallery.appendChild(img);
+          }
+        });
+      } catch (e) {
+        gallery.innerHTML = '載入圖片失敗。';
+      }
+    }
+  </script>
+</body>
+</html>

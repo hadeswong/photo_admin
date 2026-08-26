@@ -1,161 +1,714 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub 相冊管理</title>
+  <title>GitHub 雲端相冊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; padding: 15px; max-width: 800px; margin: 0 auto; background: #f9f9f9; }
-    .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 15px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 15px; }
-    .grid img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }
-    label, select, input, button { display: block; width: 100%; margin-top: 8px; padding: 8px; box-sizing: border-box; }
-    button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --accent: #818cf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --danger: #f43f5e;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 20px 16px 60px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .panel {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 28px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      background-color: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 640px) {
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .file-drop-area {
+      position: relative;
+      border: 2px dashed var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      background-color: rgba(15, 23, 42, 0.4);
+      cursor: pointer;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .file-drop-area:hover, .file-drop-area.dragover {
+      border-color: var(--primary);
+      background-color: rgba(56, 189, 248, 0.05);
+    }
+
+    .file-drop-area input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .file-msg {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    .file-msg span {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, var(--primary), #0284c7);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Progress bar */
+    .progress-container {
+      margin-top: 14px;
+      display: none;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background-color: #0f172a;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      text-align: right;
+    }
+
+    /* Filter Tabs */
+    .filter-section {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .tab-btn {
+      padding: 8px 16px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background-color: var(--primary);
+      border-color: var(--primary);
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .refresh-btn:hover {
+      border-color: var(--text-muted);
+      color: var(--text-main);
+    }
+
+    /* Gallery Grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 16px;
+    }
+
+    @media (min-width: 640px) {
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      }
+    }
+
+    .img-card {
+      position: relative;
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 1;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .img-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+      border-color: var(--primary);
+    }
+
+    .img-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .img-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background-color: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(4px);
+      color: var(--primary);
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      grid-column: 1 / -1;
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      stroke: var(--text-muted);
+      opacity: 0.5;
+    }
+
+    /* Lightbox Modal */
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .lightbox.active {
+      display: flex;
+    }
+
+    .lightbox-content {
+      max-width: 90%;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+      background: rgba(255,255,255,0.1);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .lightbox-close:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .lightbox-info {
+      position: absolute;
+      bottom: 20px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.8);
+      padding: 6px 16px;
+      border-radius: 20px;
+    }
   </style>
 </head>
 <body>
 
-  <h2>GitHub 圖庫管理員</h2>
+  <div class="container">
+    <header>
+      <h1>GitHub 雲端相冊 Pro</h1>
+      <p>免佔用手機空間 • 多圖同步上傳 • 自動分類預覽</p>
+    </header>
 
-  <div class="card">
-    <h3>1. 設定 GitHub 設定</h3>
-    <input type="text" id="username" placeholder="GitHub 帳號 (例如: username)">
-    <input type="text" id="repo" placeholder="儲存庫名稱 (例如: my-image-repo)">
-    <input type="password" id="token" placeholder="GitHub Personal Access Token (repo 權限)">
-    <button onclick="saveConfig()">儲存設定</button>
+    <!-- Control Panel -->
+    <div class="panel">
+      <div class="form-group">
+        <label for="token">GitHub Access Token (Classic)</label>
+        <input type="password" id="token" placeholder="貼上 ghp_ 開頭的 Personal Access Token" autocomplete="off">
+      </div>
+
+      <div class="grid-2 form-group">
+        <div>
+          <label for="category">上傳分類目錄</label>
+          <select id="category">
+            <option value="travel">✈️ 旅遊 (travel)</option>
+            <option value="work">💼 工作 (work)</option>
+            <option value="life">🏠 生活 (life)</option>
+            <option value="general">📁 一般 (general)</option>
+          </select>
+        </div>
+
+        <div>
+          <label>選擇檔案 (可多選)</label>
+          <div class="file-drop-area" id="dropArea">
+            <div class="file-msg" id="fileMsg">點擊或拖曳 <span>多張圖片</span> 至此</div>
+            <input type="file" id="fileInput" accept="image/*" multiple>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" id="uploadBtn" onclick="uploadImages()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        開始上傳圖片
+      </button>
+
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="progress-text" id="progressText">準備上傳...</div>
+      </div>
+    </div>
+
+    <!-- Filter & Refresh -->
+    <div class="filter-section">
+      <div class="filter-tabs" id="filterTabs">
+        <button class="tab-btn active" onclick="switchFilter('all', this)">🌐 全部圖片</button>
+        <button class="tab-btn" onclick="switchFilter('travel', this)">✈️ 旅遊</button>
+        <button class="tab-btn" onclick="switchFilter('work', this)">💼 工作</button>
+        <button class="tab-btn" onclick="switchFilter('life', this)">🏠 生活</button>
+        <button class="tab-btn" onclick="switchFilter('general', this)">📁 一般</button>
+      </div>
+
+      <button class="refresh-btn" onclick="loadAllImages()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        重新整理
+      </button>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div class="gallery-grid" id="galleryGrid">
+      <div class="empty-state">
+        <p>載入圖库中...</p>
+      </div>
+    </div>
   </div>
 
-  <div class="card">
-    <h3>2. 上傳圖片</h3>
-    <label>選擇分類資料夾：</label>
-    <select id="category" onchange="loadImages()">
-      <option value="default">預設 (default)</option>
-      <option value="food">美食 (food)</option>
-      <option value="travel">旅遊 (travel)</option>
-      <option value="work">工作 (work)</option>
-    </select>
-    
-    <input type="file" id="fileInput" accept="image/*">
-    <button onclick="uploadImage()">上傳並自動刷新</button>
-  </div>
-
-  <div class="card">
-    <h3>3. 圖片列表</h3>
-    <button onclick="loadImages()">手動刷新列表</button>
-    <div id="gallery" class="grid"></div>
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <span class="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="lightboxImg" src="" alt="預覽圖">
+    <div class="lightbox-info" id="lightboxInfo"></div>
   </div>
 
   <script>
-    // 儲存與讀取設定
-    function saveConfig() {
-      localStorage.setItem('gh_user', document.getElementById('username').value);
-      localStorage.setItem('gh_repo', document.getElementById('repo').value);
-      localStorage.setItem('gh_token', document.getElementById('token').value);
-      alert('設定已儲存！');
-      loadImages();
-    }
+    // ==========================================
+    // ⚠️ 請修改為你的 GitHub 帳號與儲存庫名稱 ⚠️
+    // ==========================================
+    const OWNER = "YOUR_GITHUB_USERNAME"; 
+    const REPO = "YOUR_REPO_NAME";        
+    const CATEGORIES = ['travel', 'work', 'life', 'general'];
 
-    function getConfig() {
-      return {
-        user: localStorage.getItem('gh_user'),
-        repo: localStorage.getItem('gh_repo'),
-        token: localStorage.getItem('gh_token')
-      };
-    }
+    let allImagesData = []; // 暫存所有已載入的圖片
+    let currentFilter = 'all';
 
-    // 自動填入已有設定
-    window.onload = () => {
-      const cfg = getConfig();
-      if(cfg.user) document.getElementById('username').value = cfg.user;
-      if(cfg.repo) document.getElementById('repo').value = cfg.repo;
-      if(cfg.token) document.getElementById('token').value = cfg.token;
-      if(cfg.user && cfg.repo) loadImages();
-    };
+    // 初始化頁面
+    document.addEventListener('DOMContentLoaded', () => {
+      // 讀取紀錄在 localStorage 的 Token
+      const savedToken = localStorage.getItem('gh_photo_token');
+      if (savedToken) {
+        document.getElementById('token').value = savedToken;
+      }
 
-    // 上傳圖片至 GitHub API
-    async function uploadImage() {
-      const cfg = getConfig();
+      // 監聽檔案選擇變化
       const fileInput = document.getElementById('fileInput');
-      const category = document.getElementById('category').value;
+      const fileMsg = document.getElementById('fileMsg');
+      fileInput.addEventListener('change', () => {
+        const count = fileInput.files.length;
+        if (count > 0) {
+          fileMsg.innerHTML = `已選擇 <span>${count}</span> 張圖片`;
+        } else {
+          fileMsg.innerHTML = '點擊或拖曳 <span>多張圖片</span> 至此';
+        }
+      });
 
-      if (!cfg.token || !fileInput.files[0]) {
-        alert('請確認已填寫 Token 並選擇圖片！');
+      // Token 輸入時自動保存
+      document.getElementById('token').addEventListener('input', (e) => {
+        localStorage.setItem('gh_photo_token', e.target.value.trim());
+      });
+
+      // 初次載入顯示全部圖片
+      loadAllImages();
+    });
+
+    // 取得請求 Header
+    function getHeaders() {
+      const token = document.getElementById('token').value.trim();
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `token ${token}`;
+      }
+      return headers;
+    }
+
+    // 讀取所有分類的圖片 (預設全圖庫)
+    async function loadAllImages() {
+      const galleryGrid = document.getElementById('galleryGrid');
+      galleryGrid.innerHTML = `
+        <div class="empty-state">
+          <p>正在同步雲端圖庫...</p>
+        </div>
+      `;
+
+      allImagesData = [];
+      const headers = getHeaders();
+
+      // 同時拉取所有分類目錄的圖片
+      const fetchPromises = CATEGORIES.map(async (cat) => {
+        const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/images/${cat}`;
+        try {
+          const res = await fetch(url, { headers });
+          if (res.ok) {
+            const files = await res.json();
+            files.forEach(file => {
+              if (file.type === 'file' && file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+                allImagesData.push({
+                  name: file.name,
+                  category: cat,
+                  download_url: file.download_url,
+                  path: file.path
+                });
+              }
+            });
+          }
+        } catch (e) {
+          console.error(`無法讀取目錄 images/${cat}:`, e);
+        }
+      });
+
+      await Promise.all(fetchPromises);
+      renderGallery();
+    }
+
+    // 渲染圖片列表
+    function renderGallery() {
+      const galleryGrid = document.getElementById('galleryGrid');
+      galleryGrid.innerHTML = '';
+
+      // 過濾分類
+      const filtered = currentFilter === 'all' 
+        ? allImagesData 
+        : allImagesData.filter(img => img.category === currentFilter);
+
+      if (filtered.length === 0) {
+        galleryGrid.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <p>目前此類別沒有圖片</p>
+          </div>
+        `;
         return;
       }
 
-      const file = fileInput.files[0];
-      const reader = new FileReader();
+      // 按檔名/時間排序 (新圖片通常帶有 Timestamp 字首)
+      filtered.sort((a, b) => b.name.localeCompare(a.name));
 
-      reader.onload = async function() {
-        const base64Content = reader.result.split(',')[1];
-        const fileName = `${Date.now()}_${file.name}`;
-        const path = `images/${category}/${fileName}`;
-        const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${path}`;
+      filtered.forEach(img => {
+        const card = document.createElement('div');
+        card.className = 'img-card';
+        card.onclick = () => openLightbox(img.download_url, `[${img.category.toUpperCase()}] ${img.name}`);
+
+        card.innerHTML = `
+          <span class="img-badge">${img.category}</span>
+          <img src="${img.download_url}" alt="${img.name}" loading="lazy">
+        `;
+        galleryGrid.appendChild(card);
+      });
+    }
+
+    // 切換分類 Tab
+    function switchFilter(category, btnElement) {
+      currentFilter = category;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+      renderGallery();
+    }
+
+    // 多圖上傳處理
+    async function uploadImages() {
+      const token = document.getElementById('token').value.trim();
+      const category = document.getElementById('category').value;
+      const fileInput = document.getElementById('fileInput');
+      const files = fileInput.files;
+
+      if (!token) {
+        alert("請先輸入 GitHub Access Token！");
+        return;
+      }
+
+      if (files.length === 0) {
+        alert("請選擇至少一張圖片！");
+        return;
+      }
+
+      const uploadBtn = document.getElementById('uploadBtn');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+
+      uploadBtn.disabled = true;
+      progressContainer.style.display = 'block';
+
+      let successCount = 0;
+      let failCount = 0;
+      const total = files.length;
+
+      for (let i = 0; i < total; i++) {
+        const file = files[i];
+        progressText.innerText = `正在上傳 (${i + 1}/${total}): ${file.name}`;
+        progressBar.style.width = `${((i) / total) * 100}%`;
 
         try {
+          const base64 = await fileToBase64(file);
+          // 使用時間戳記避免同檔名覆蓋
+          const filePath = `images/${category}/${Date.now()}_${file.name}`;
+          const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
+
           const res = await fetch(url, {
             method: 'PUT',
             headers: {
-              'Authorization': `token ${cfg.token}`,
+              'Authorization': `token ${token}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              message: `Upload ${fileName} to ${category}`,
-              content: base64Content
+              message: `Upload ${file.name} to ${category}`,
+              content: base64
             })
           });
 
           if (res.ok) {
-            alert('上傳成功！');
-            fileInput.value = ''; // 清空檔案選擇
-            loadImages(); // 上傳後自動刷新圖片
+            successCount++;
           } else {
-            const err = await res.json();
-            alert('上傳失敗: ' + err.message);
+            const errData = await res.json();
+            console.error('上傳失敗:', errData);
+            if (res.status === 401) {
+              alert("Token 驗證失敗 (Bad credentials)，請檢查 Token 是否正確或過期。");
+              break;
+            }
+            failCount++;
           }
         } catch (e) {
-          alert('請求失敗: ' + e.message);
+          console.error('檔案轉換或網路錯誤:', e);
+          failCount++;
         }
-      };
+      }
 
-      reader.readAsDataURL(file);
+      progressBar.style.width = '100%';
+      progressText.innerText = `上傳完成！成功: ${successCount} 張，失敗: ${failCount} 張`;
+
+      setTimeout(() => {
+        uploadBtn.disabled = false;
+        progressContainer.style.display = 'none';
+        fileInput.value = '';
+        document.getElementById('fileMsg').innerHTML = '點擊或拖曳 <span>多張圖片</span> 至此';
+        
+        // 上傳完成後，刷新圖片列表
+        loadAllImages();
+      }, 1500);
     }
 
-    // 載入指定分類下的圖片
-    async function loadImages() {
-      const cfg = getConfig();
-      const category = document.getElementById('category').value;
-      const gallery = document.getElementById('gallery');
-      gallery.innerHTML = '載入中...';
+    // 檔案轉 Base64 輔助函式
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
 
-      if (!cfg.user || !cfg.repo) return;
+    // Lightbox 放大預覽
+    function openLightbox(url, info) {
+      document.getElementById('lightboxImg').src = url;
+      document.getElementById('lightboxInfo').innerText = info;
+      document.getElementById('lightbox').classList.add('active');
+    }
 
-      const path = `images/${category}`;
-      const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${path}`;
-
-      try {
-        const res = await fetch(url, {
-          headers: cfg.token ? { 'Authorization': `token ${cfg.token}` } : {}
-        });
-
-        if (res.status === 404) {
-          gallery.innerHTML = '此分類尚無圖片。';
-          return;
-        }
-
-        const files = await res.json();
-        gallery.innerHTML = '';
-
-        files.forEach(file => {
-          if (file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-            const img = document.createElement('img');
-            // 使用 GitHub raw 連結或 jsDelivr CDN 進行加速展示
-            img.src = file.download_url;
-            gallery.appendChild(img);
-          }
-        });
-      } catch (e) {
-        gallery.innerHTML = '載入圖片失敗。';
+    function closeLightbox(e) {
+      if (e.target.id === 'lightbox' || e.target.className === 'lightbox-close') {
+        document.getElementById('lightbox').classList.remove('active');
       }
     }
   </script>
